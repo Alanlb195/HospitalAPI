@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using hospital.Models.HospitalDB;
-using hospital.Models.DTOS;
 using AutoMapper;
-using System.ComponentModel.DataAnnotations;
+using hospital.Models.HospitalDB.DTOS;
+using Microsoft.Data.SqlClient;
 
 namespace hospital.Controllers
 {
@@ -20,9 +20,11 @@ namespace hospital.Controllers
             _mapper = mapper;
         }
 
+
+        #region GetTblMedicos
         // GET: api/TblMedicos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MedicoRequest>>> GetTblMedicos()
+        public async Task<ActionResult<IEnumerable<MedicoView>>> GetTblMedicos()
         {
             if (_context.TblMedicos == null)
             {
@@ -31,43 +33,68 @@ namespace hospital.Controllers
 
             IEnumerable<TblMedico> medicos = await _context.TblMedicos.ToListAsync();
 
-            var response = _mapper.Map<List<MedicoRequest>>(medicos);
+            var response = _mapper.Map<List<MedicoView>>(medicos);
 
             return response;
         }
+        #endregion
 
 
+
+        #region SpInsertMedico
         // POST: api/TblMedicos/SpInsertMedico
         [HttpPost("SpInsertMedico")]
-        public IActionResult InsertarMedico(
-            [StringLength(50)] string nombre,
-            [StringLength(50)] string apellidoPaterno,
-            [StringLength(50)] string apellidoMaterno,
-            [StringLength(10)] string cedulaProfesional,
-            int especialidadId,
-            DateTime fechaNacimiento)
+        public IActionResult InsertarMedico([FromBody] MedicoRequest request)
         {
             try
             {
-                _context.Database.ExecuteSqlInterpolated($@"
-            EXECUTE dbo.InsertMedico
-            {nombre}, 
-            {apellidoPaterno}, 
-            {apellidoMaterno}, 
-            {cedulaProfesional}, 
-            {especialidadId}, 
-            {fechaNacimiento}");
+                // Validar el modelo
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-                return Ok("Se ha insertado correctamente el registro");
+                var parameters = new[]
+                {
+                    new SqlParameter("@Nombre", request.Nombre),
+                    new SqlParameter("@ApellidoPaterno", request.ApellidoPaterno),
+                    new SqlParameter("@ApellidoMaterno", request.ApellidoMaterno),
+                    new SqlParameter("@CedulaProfesional", request.CedulaProfesional),
+                    new SqlParameter("@fkEspecialidadID", request.EspecialidadId),
+                    new SqlParameter("@FechaNacimiento", request.FechaNacimiento),
+                    new SqlParameter("@InsertSuccess", System.Data.SqlDbType.Bit)
+                    {
+                        Direction = System.Data.ParameterDirection.Output
+                    }
+                };
+
+                var insertSuccessParameter = parameters.Last(); // Referencia al último parámetro (@InsertSuccess)
+
+                _context.Database.
+                    ExecuteSqlRaw("EXECUTE dbo.InsertMedico @Nombre, @ApellidoPaterno, @ApellidoMaterno, @CedulaProfesional, @fkEspecialidadID, @FechaNacimiento, @InsertSuccess OUTPUT", parameters);
+
+                bool insertSuccess = (bool)insertSuccessParameter.Value;
+
+                if (insertSuccess)
+                {
+                    return Ok("Se ha insertado correctamente el registro");
+                }
+                else
+                {
+                    return BadRequest("No se pudo insertar el registro.");
+                }
+
             }
             catch (Exception ex)
             {
                 return BadRequest("No se pudo insertar el registro. Error: " + ex.Message);
             }
         }
+        #endregion
+        
 
 
-
+        #region DeleteTblMedico
         // DELETE: api/TblMedicos/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTblMedico(int id)
@@ -87,6 +114,7 @@ namespace hospital.Controllers
 
             return NoContent();
         }
+        #endregion
 
 
     }

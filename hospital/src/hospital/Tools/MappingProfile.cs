@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using hospital.Models.DTOS;
 using hospital.Models.HospitalDB;
+using hospital.Models.HospitalDB.DTOS;
 
 namespace hospital.Tools
 {
@@ -9,7 +9,7 @@ namespace hospital.Tools
 
         public MappingProfile()
         {
-            CreateMap<TblMedico, MedicoRequest>();
+            CreateMap<TblMedico, MedicoView>();
         }
 
 
