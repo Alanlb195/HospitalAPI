@@ -12,7 +12,7 @@ using hospital.Models.HospitalDB;
 namespace hospital.Migrations
 {
     [DbContext(typeof(dbExamen1Context))]
-    [Migration("20230723192130_sp_delete_medico")]
+    [Migration("20230723224057_sp_delete_medico")]
     partial class sp_delete_medico
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

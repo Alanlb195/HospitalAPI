@@ -41,7 +41,7 @@ namespace hospital.Controllers
 
 
 
-        #region SpInsertMedico
+        #region TblMedicos/SpInsertMedico
         // POST: api/TblMedicos/SpInsertMedico
         [HttpPost("SpInsertMedico")]
         public IActionResult InsertarMedico([FromBody] MedicoRequest request)
@@ -91,30 +91,60 @@ namespace hospital.Controllers
             }
         }
         #endregion
-        
 
 
-        #region DeleteTblMedico
-        // DELETE: api/TblMedicos/5
+
+        #region TblMedicos/SpDeleteMedico/5
+        // DELETE: api/TblMedicos/SpDeleteMedico/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTblMedico(int id)
         {
-            if (_context.TblMedicos == null)
+            try
             {
-                return NotFound();
+                // Buscar el médico por ID
+                var medico = await _context.TblMedicos.FindAsync(id);
+
+                if (medico == null)
+                {
+                    // Médico no encontrado, retornar not found
+                    return NotFound();
+                }
+
+                // Eliminar el médico utilizando el procedimiento almacenado
+                var parameters = new[]
+                {
+                    new SqlParameter("@pkMedicoID", id),
+                    new SqlParameter("@DeleteSuccess", System.Data.SqlDbType.Bit)
+                    {
+                        Direction = System.Data.ParameterDirection.Output
+                    }
+                };
+
+                var deleteSuccessParameter = parameters.Last(); // Referencia al último parámetro (@DeleteSuccess)
+
+                _context.Database.ExecuteSqlRaw("EXECUTE dbo.deleteMedico @pkMedicoID, @DeleteSuccess OUTPUT", parameters);
+
+                bool deleteSuccess = (bool)deleteSuccessParameter.Value;
+
+                if (deleteSuccess)
+                {
+                    // La eliminación fue exitosa
+                    return Ok("El médico fue eliminado exitosamente.");
+                }
+                else
+                {
+                    // La eliminación falló
+                    return BadRequest("No se pudo eliminar el médico.");
+                }
             }
-            var tblMedico = await _context.TblMedicos.FindAsync(id);
-            if (tblMedico == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                // Si ocurre una excepción, puedes manejarla aquí
+                return BadRequest("Ocurrió un error al intentar eliminar el médico. Error: " + ex.Message);
             }
-
-            _context.TblMedicos.Remove(tblMedico);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
         #endregion
+
 
 
     }
