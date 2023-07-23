@@ -38,24 +38,11 @@ namespace hospital.Migrations
                 END CATCH
             END
             ");
-
-            migrationBuilder.Sql(@"
-            CREATE PROCEDURE dbo.deleteMedico
-                @pkMedicoID int
-            AS
-            BEGIN
-                SET NOCOUNT ON;
-    
-                DELETE FROM TblMedico
-                WHERE pkMedicoID = @pkMedicoID;
-            END
-            ");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql("DROP PROCEDURE dbo.InsertMedico");
-            migrationBuilder.Sql("DROP PROCEDURE dbo.deleteMedico");
         }
     }
 }

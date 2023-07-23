@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using hospital.Models.HospitalDB;
 
@@ -11,9 +12,10 @@ using hospital.Models.HospitalDB;
 namespace hospital.Migrations
 {
     [DbContext(typeof(dbExamen1Context))]
-    partial class dbExamen1ContextModelSnapshot : ModelSnapshot
+    [Migration("20230723192130_sp_delete_medico")]
+    partial class sp_delete_medico
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
