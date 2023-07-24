@@ -21,7 +21,12 @@ namespace hospital.Migrations
             BEGIN
                 SET NOCOUNT ON;
                 DECLARE @Edad int
-                SET @Edad = DATEDIFF(YEAR, @FechaNacimiento, GETDATE())
+                DECLARE @FechaActual datetime = GETDATE()
+
+                SET @Edad = DATEDIFF(YEAR, @FechaNacimiento, @FechaActual)
+                IF DATEADD(YEAR, @Edad, @FechaNacimiento) > @FechaActual
+                    SET @Edad = @Edad - 1
+
                 IF @Edad < 25
                 BEGIN
                     SET @InsertSuccess = 0; -- No se cumple la condición de edad mínima
@@ -30,7 +35,7 @@ namespace hospital.Migrations
 
                 BEGIN TRY
                     INSERT INTO TblMedico(Nombre, ApellidoPaterno, ApellidoMaterno, CedulaProfesional, fkEspecialidadID, FechaNacimiento, CrBy, CrDt)
-                    VALUES(@Nombre, @ApellidoPaterno, @ApellidoMaterno, @CedulaProfesional, @fkEspecialidadID, @FechaNacimiento, user_id(), GETDATE());
+                    VALUES(@Nombre, @ApellidoPaterno, @ApellidoMaterno, @CedulaProfesional, @fkEspecialidadID, @FechaNacimiento, user_id(), @FechaActual);
                     SET @InsertSuccess = 1; -- La inserción fue exitosa
                 END TRY
                 BEGIN CATCH
